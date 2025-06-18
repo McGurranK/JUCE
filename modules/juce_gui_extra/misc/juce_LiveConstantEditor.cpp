@@ -117,10 +117,13 @@ String intToString (int   v, bool preferHex)    { return preferHex ? "0x" + Stri
 String intToString (int64 v, bool preferHex)    { return preferHex ? "0x" + String::toHexString (v) : String (v); }
 
 //==============================================================================
-LiveValueBase::LiveValueBase (const char* file, int line)
+LiveValueBase::LiveValueBase (const char* file, int line, juce::String constantValue)
     : sourceFile (file), sourceLine (line)
 {
-    name = File (sourceFile).getFileName() + " : " + String (sourceLine);
+    if (constantValue.isEmpty())
+        name = File (sourceFile).getFileName() + " : " + String (sourceLine);
+    else
+        name = constantValue + " : " + String (sourceLine);
 }
 
 LiveValueBase::~LiveValueBase()

@@ -94,7 +94,7 @@ namespace juce::LiveConstantEditor
     //==============================================================================
     struct JUCE_API  LiveValueBase
     {
-        LiveValueBase (const char* file, int line);
+        LiveValueBase (const char* file, int line, juce::String constantName);
         virtual ~LiveValueBase();
 
         virtual LivePropertyEditorBase* createPropertyComponent (CodeDocument&) = 0;
@@ -171,8 +171,8 @@ namespace juce::LiveConstantEditor
     template <typename Type>
     struct LiveValue  : public LiveValueBase
     {
-        LiveValue (const char* file, int line, const Type& initialValue)
-            : LiveValueBase (file, line), value (initialValue), originalValue (initialValue)
+        LiveValue (const char* file, int line, const Type& initialValue, juce::String constantName)
+            : LiveValueBase (file, line, constantName), value (initialValue), originalValue (initialValue)
         {}
 
         operator Type() const noexcept   { return value; }
@@ -206,7 +206,7 @@ namespace juce::LiveConstantEditor
         JUCE_DECLARE_SINGLETON_INLINE (ValueList, false)
 
         template <typename Type>
-        LiveValue<Type>& getValue (const char* file, int line, const Type& initialValue)
+        LiveValue<Type>& getValue (const char* file, int line, const Type& initialValue, juce::String constantName)
         {
             const ScopedLock sl (lock);
             using ValueType = LiveValue<Type>;
@@ -215,7 +215,7 @@ namespace juce::LiveConstantEditor
                 if (v->sourceLine == line && v->sourceFile == file)
                     return *static_cast<ValueType*> (v);
 
-            auto v = new ValueType (file, line, initialValue);
+            auto v = new ValueType (file, line, initialValue, constantName);
             addValue (v);
             return *v;
         }
@@ -234,7 +234,7 @@ namespace juce::LiveConstantEditor
     };
 
     template <typename Type>
-    inline LiveValue<Type>& getValue (const char* file, int line, const Type& initialValue)
+    inline LiveValue<Type>& getValue (const char* file, int line, const Type& initialValue, juce::String constantName)
     {
         // If you hit this assertion then the __FILE__ macro is providing a
         // relative path instead of an absolute path. On Windows this will be
@@ -242,12 +242,12 @@ namespace juce::LiveConstantEditor
         // running application. To fix this you must compile with the /FC flag.
         jassert (File::isAbsolutePath (file));
 
-        return ValueList::getInstance()->getValue (file, line, initialValue);
+        return ValueList::getInstance()->getValue (file, line, initialValue, constantName);
     }
 
-    inline LiveValue<String>& getValue (const char* file, int line, const char* initialValue)
+    inline LiveValue<String>& getValue (const char* file, int line, const char* initialValue, juce::String constantName)
     {
-        return getValue (file, line, String (initialValue));
+        return getValue (file, line, String (initialValue), constantName);
     }
 
 } // namespace juce::LiveConstantEditor
@@ -304,7 +304,11 @@ namespace juce::LiveConstantEditor
  */
  #define JUCE_LIVE_CONSTANT(initialValue) \
     (juce::LiveConstantEditor::getValue (__FILE__, __LINE__ - 1, initialValue).get())
+ #define JUCE_LIVE_CONSTANT_NAMED(initialValue, name) \
+    (juce::LiveConstantEditor::getValue (__FILE__, __LINE__ - 1, initialValue).get())
 #else
  #define JUCE_LIVE_CONSTANT(initialValue) \
+    (initialValue)
+ #define JUCE_LIVE_CONSTANT_NAMED(initialValue, name) \
     (initialValue)
 #endif
