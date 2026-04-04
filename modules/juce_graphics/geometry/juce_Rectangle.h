@@ -321,6 +321,56 @@ public:
     /** Returns a version of this rectangle with the given amount removed from its bottom edge. */
     [[nodiscard]] Rectangle withTrimmedBottom (ValueType amountToRemove) const noexcept   { return withHeight (h - amountToRemove); }
 
+    void clipBottom (ValueType amountToClip) noexcept
+    {
+        amountToClip = jmin (amountToClip, h);
+        h -= amountToClip;
+    }
+
+    void clipLeft (ValueType amountToClip) noexcept
+    {
+        amountToClip = jmin (amountToClip, w);
+        pos.x += amountToClip;
+        w -= amountToClip;
+    }
+
+    void clipRight (ValueType amountToClip) noexcept
+    {
+        amountToClip = jmin (amountToClip, w);
+        w -= amountToClip;
+    }
+
+    void clipTop (ValueType amountToClip) noexcept
+    {
+        amountToClip = jmin (amountToClip, h);
+        pos.y += amountToClip;
+        h -= amountToClip;
+    }
+
+    Rectangle& withClippedBottom (ValueType amountToClip) noexcept
+    {
+        clipBottom (amountToClip);
+        return *this;
+    }
+
+    Rectangle& withClippedLeft (ValueType amountToClip) noexcept
+    {
+        clipLeft (amountToClip);
+        return *this;
+    }
+
+    Rectangle& withClippedRight (ValueType amountToClip) noexcept
+    {
+        clipRight (amountToClip);
+        return *this;
+    }
+
+    Rectangle& withClippedTop (ValueType amountToClip) noexcept
+    {
+        clipTop (amountToClip);
+        return *this;
+    }
+
     //==============================================================================
     /** Moves the rectangle's position by adding amount to its x and y coordinates. */
     void translate (ValueType deltaX,
